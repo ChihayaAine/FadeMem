@@ -212,5 +212,62 @@ def main():
     print("✓ Importance-based memory management")
     print("✓ Long-term memory retention and retrieval")
 
+def main_enhanced_demo():
+    """
+    Run the enhanced dual-layer memory architecture demo with RAG capabilities.
+    """
+    print("🚀 Enhanced Dual-Layer Memory Architecture with RAG")
+    print("Choose demo mode:")
+    print("1. Basic dual-layer memory demonstration")
+    print("2. Complete enhanced system with RAG (recommended)")
+    print("3. Performance benchmarks and validation")
+    
+    try:
+        choice = input("Enter choice (1-3, default=2): ").strip() or "2"
+        
+        if choice == "1":
+            print("\nRunning basic dual-layer memory demo...")
+            main()
+        elif choice == "2":
+            print("\nRunning complete enhanced system demo...")
+            from demo_enhanced_system import main as enhanced_main
+            enhanced_main()
+        elif choice == "3":
+            print("\nRunning performance benchmarks...")
+            from rag.retrieval_chain import MemoryRetrievalChain
+            from evaluation.performance_benchmarks import PerformanceBenchmarks
+            from evaluation.methodology_validator import MethodologyValidator
+            
+            # Initialize system
+            retrieval_chain = MemoryRetrievalChain()
+            
+            # Run benchmarks
+            benchmarks = PerformanceBenchmarks()
+            results = benchmarks.run_comprehensive_benchmarks(retrieval_chain)
+            
+            # Run validation
+            validator = MethodologyValidator()
+            validation = validator.run_comprehensive_validation(retrieval_chain.memory_manager)
+            
+            print("\n📊 Benchmark Results:")
+            print(f"Memory addition throughput: {results.get('summary', {}).get('performance_assessment', {}).get('memory_addition', 'N/A')}")
+            print(f"Retrieval performance: {results.get('summary', {}).get('performance_assessment', {}).get('retrieval_performance', 'N/A')}")
+            
+            print("\n✅ Validation Results:")
+            print(f"Overall compliance: {'✓' if validation.get('summary', {}).get('methodology_adherence', False) else '✗'}")
+            print(f"Pass rate: {validation.get('summary', {}).get('pass_rate', 0):.1%}")
+            
+        else:
+            print("Invalid choice. Running basic demo...")
+            main()
+            
+    except KeyboardInterrupt:
+        print("\nDemo interrupted by user.")
+    except Exception as e:
+        print(f"\nError running demo: {e}")
+        print("Falling back to basic demo...")
+        main()
+
+
 if __name__ == "__main__":
-    main() 
+    main_enhanced_demo() 
