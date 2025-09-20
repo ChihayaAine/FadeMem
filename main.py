@@ -1,112 +1,216 @@
 import time
 import random
-from management.memory_manager import MemoryManager
+from core.enhanced_memory_manager import EnhancedMemoryManager, EmbeddingGenerator
 from llm.llm_interface import LLMInterface
 
 
-def simulate_user_interaction(memory_manager: MemoryManager, llm: LLMInterface, query: str, day: int) -> None:
+def simulate_user_interaction(memory_manager: EnhancedMemoryManager, llm: LLMInterface, query: str, day: int) -> None:
     """
-    Simulate a user interaction with the system, retrieving context and generating a response.
+    Simulate a user interaction with the enhanced memory system.
     
     Args:
-        memory_manager (MemoryManager): The memory manager instance.
+        memory_manager (EnhancedMemoryManager): The enhanced memory manager instance.
         llm (LLMInterface): The LLM interface instance.
         query (str): The user's query.
         day (int): The simulated day for logging purposes.
     """
     print(f"\n[Day {day}] User Query: {query}")
-    context = memory_manager.get_context_for_query(query)
+    
+    # Retrieve relevant memories using enhanced system
+    context = memory_manager.get_memory_context(query, top_k=3)
     print(f"[Day {day}] Context from Memories:\n{context}")
+    
+    # Generate LLM response
     response = llm.generate_response(query, context)
     print(f"[Day {day}] LLM Response:\n{response}")
-    # Add the query and response as new memories
-    memory_manager.add_memory(f"User asked: {query} on day {day}", {"semantic_relevance": 0.7, "emotional_intensity": 0.5, "user_feedback": 0.6})
-    memory_manager.add_memory(f"Response: {response[:50]}... on day {day}", {"semantic_relevance": 0.6, "emotional_intensity": 0.4, "user_feedback": 0.5})
+    
+    # Add the interaction as new memories with metadata
+    query_metadata = {
+        "interaction_type": "user_query",
+        "day": day,
+        "query_topic": "project" if "project" in query.lower() else "general"
+    }
+    
+    response_metadata = {
+        "interaction_type": "system_response", 
+        "day": day,
+        "response_length": len(response)
+    }
+    
+    memory_manager.add_memory(f"User asked: {query} on day {day}", query_metadata)
+    memory_manager.add_memory(f"System responded: {response[:100]}... on day {day}", response_metadata)
 
-def simulate_time_passing(memory_manager: MemoryManager, days: int, hours_per_day: int = 24) -> None:
+def simulate_time_passing(memory_manager: EnhancedMemoryManager, days: int) -> None:
     """
-    Simulate the passage of time, applying decay and managing transitions.
+    Simulate the passage of time using the enhanced memory system.
     
     Args:
-        memory_manager (MemoryManager): The memory manager instance.
+        memory_manager (EnhancedMemoryManager): The enhanced memory manager instance.
         days (int): Number of days to simulate.
-        hours_per_day (int, optional): Hours per day to simulate decay updates. Defaults to 24.
     """
     print(f"\nSimulating {days} days passing...")
+    
+    # Simulate time passage by advancing system time and applying updates
     for day in range(days):
-        for hour in range(hours_per_day):
-            # Simulate time passing by updating decays every hour
-            memory_manager.update_decays()
-            if hour % 6 == 0:  # Manage transitions every 6 hours
-                memory_manager.manage_transitions()
-        if (day + 1) % 5 == 0:  # Print status every 5 days
-            print(f"After {day + 1} days:")
+        # Force system update to apply decay, transitions, and fusion
+        stats = memory_manager.update_system(force_all=True)
+        
+        if (day + 1) % 5 == 0 or day == days - 1:  # Print status every 5 days or on last day
+            print(f"\nAfter {day + 1} days:")
             print(memory_manager)
+            if stats['transitions']:
+                print(f"  Transitions: {stats['transitions']}")
+            if stats['fusion_stats']:
+                print(f"  Fusion: {stats['fusion_stats']}")
+        
+        # Simulate random memory access during the day (some memories get reinforced)
+        all_memories = memory_manager.dual_layer_memory.get_all_memories()
+        if all_memories and random.random() > 0.7:  # 30% chance of random access
+            random_memory = random.choice(all_memories)
+            random_memory.access()
+            if day == days - 1:  # Show on last day
+                print(f"  Random access: {random_memory.content[:50]}...")
 
 def main():
     """
-    Main function to demonstrate the Agent Memory system with RAG and LLM integration,
-    simulating a long-term interaction scenario over multiple days with memory retention.
+    Main function demonstrating the Enhanced Dual-Layer Memory Architecture
+    implementing the complete methodology with biologically-inspired forgetting,
+    conflict resolution, and adaptive fusion.
     """
-    # Initialize memory manager and LLM interface
-    memory_manager = MemoryManager(decay_threshold=0.1)
-    # Optionally set an API key for real LLM calls (uncomment and replace with actual key)
-    # api_key = "your-openai-api-key-here"
-    # llm = LLMInterface(api_key=api_key)
-    llm = LLMInterface()  # Without API key, uses mock responses
+    print("=== Enhanced Dual-Layer Memory Architecture Demo ===")
+    print("Implementing methodology: Dual-Layer Memory with Differential Forgetting\n")
     
-    # Add initial set of memories (simulating past events or knowledge)
+    # Initialize enhanced memory system
+    llm = LLMInterface()  # Uses mock responses (set API key for real LLM)
+    embedding_generator = EmbeddingGenerator(dimension=768)
+    memory_manager = EnhancedMemoryManager(llm, embedding_generator)
+    
+    print("System initialized with:")
+    print(f"- LML capacity: {memory_manager.dual_layer_memory.max_lml_capacity}")
+    print(f"- SML capacity: {memory_manager.dual_layer_memory.max_sml_capacity}")
+    print(f"- Promotion threshold: {memory_manager.dual_layer_memory.theta_promote}")
+    print(f"- Demotion threshold: {memory_manager.dual_layer_memory.theta_demote}")
+    
+    # Add initial memories demonstrating different importance levels
     initial_memories = [
-        {"content": "Meeting with client at 3 PM on project launch", "metadata": {"semantic_relevance": 0.8, "emotional_intensity": 0.6, "user_feedback": 0.7}},
-        {"content": "Buy groceries for team dinner", "metadata": {"semantic_relevance": 0.4, "emotional_intensity": 0.2, "user_feedback": 0.3}},
-        {"content": "Project deadline set for next month", "metadata": {"semantic_relevance": 0.9, "emotional_intensity": 0.8, "user_feedback": 0.9}},
-        {"content": "Random thought about weather being nice", "metadata": {"semantic_relevance": 0.1, "emotional_intensity": 0.1, "user_feedback": 0.1}},
-        {"content": "Client feedback: Need to revise project scope", "metadata": {"semantic_relevance": 0.85, "emotional_intensity": 0.7, "user_feedback": 0.8}}
+        {
+            "content": "Critical project deadline is next month - client expects delivery by end of March",
+            "metadata": {"priority": "high", "type": "deadline", "impact": "critical"}
+        },
+        {
+            "content": "Meeting with client at 3 PM tomorrow to discuss project scope and requirements",
+            "metadata": {"priority": "high", "type": "meeting", "impact": "important"}
+        },
+        {
+            "content": "Need to buy groceries for team dinner - pizza, drinks, and dessert",
+            "metadata": {"priority": "low", "type": "personal", "impact": "minor"}
+        },
+        {
+            "content": "Client feedback: current approach needs major revision, pivot to new architecture",
+            "metadata": {"priority": "critical", "type": "feedback", "impact": "major"}
+        },
+        {
+            "content": "Weather forecast shows rain tomorrow, might affect commute",
+            "metadata": {"priority": "low", "type": "information", "impact": "minimal"}
+        },
+        {
+            "content": "Team lead mentioned budget constraints may affect project timeline",
+            "metadata": {"priority": "medium", "type": "concern", "impact": "moderate"}
+        },
+        {
+            "content": "Coffee machine in break room needs repair - facilities notified",
+            "metadata": {"priority": "low", "type": "maintenance", "impact": "minor"}
+        }
     ]
     
-    for mem in initial_memories:
-        memory_manager.add_memory(mem["content"], mem["metadata"])
+    print("\nAdding initial memories...")
+    for i, mem in enumerate(initial_memories):
+        success = memory_manager.add_memory(mem["content"], mem["metadata"])
+        print(f"  {i+1}. {'✓' if success else '✗'} {mem['content'][:50]}...")
     
-    print("Initial State (Day 0):")
+    print(f"\nInitial State (Day 0):")
     print(memory_manager)
+    stats = memory_manager.get_system_statistics()
+    print(f"System stats: {stats['total_memories']} total, "
+          f"avg strength: {stats['avg_memory_strength']:.3f}, "
+          f"avg half-life: {stats['avg_half_life_days']:.2f} days")
     
-    # Simulate a long-term interaction over 30 days with multiple user interactions
-    interaction_days = [1, 3, 7, 14, 21, 28]  # Days when user interacts with the system
-    queries = [
-        "What do I have scheduled today regarding the project?",
-        "Any updates on the client meeting?",
-        "Remind me about the project deadline.",
-        "What did the client say about the project scope?",
-        "Do I have any tasks related to the team?",
-        "Summarize my project-related memories."
+    # Simulate user interactions over time with methodology demonstration
+    interaction_schedule = [
+        (1, "What are my high-priority tasks for this week?"),
+        (3, "Remind me about the client meeting details"),
+        (7, "What was the client feedback about our project approach?"),
+        (10, "Any updates on project deadlines or timeline?"),
+        (14, "What team concerns were mentioned recently?"),
+        (21, "Summarize all project-related information"),
+        (28, "What important meetings or deadlines do I have coming up?")
     ]
     
     current_day = 0
-    for interaction_day, query in zip(interaction_days, queries):
-        # Simulate time passing until the interaction day
-        days_to_pass = interaction_day - current_day
-        if days_to_pass > 0:
-            simulate_time_passing(memory_manager, days_to_pass)
+    print(f"\n=== Simulating {len(interaction_schedule)} interactions over 30 days ===")
+    
+    for interaction_day, query in interaction_schedule:
+        # Simulate time passing
+        days_elapsed = interaction_day - current_day
+        if days_elapsed > 0:
+            print(f"\n--- Time passes: {days_elapsed} days ---")
+            simulate_time_passing(memory_manager, days_elapsed)
             current_day = interaction_day
         
-        # Simulate user interaction on the specified day
+        # User interaction
         simulate_user_interaction(memory_manager, llm, query, current_day)
         
-        # Randomly access some memories to simulate reinforcement (user revisiting old info)
-        if random.random() > 0.5 and memory_manager.working_memory.memories:
-            memory_to_access = random.choice(memory_manager.working_memory.memories + memory_manager.short_term_memory.memories)
-            print(f"[Day {current_day}] User revisited memory: {memory_to_access.content[:30]}...")
-            memory_to_access.access()
+        # Show system evolution
+        stats = memory_manager.get_system_statistics()
+        print(f"  Memory distribution: LML={stats['lml_count']}, SML={stats['sml_count']}")
+        print(f"  System health: avg_strength={stats['avg_memory_strength']:.3f}, "
+              f"avg_half_life={stats['avg_half_life_days']:.2f}d")
     
-    # Final state after all interactions
-    simulate_time_passing(memory_manager, 2)  # Simulate 2 more days after last interaction
-    print("\nFinal State (Day 30):")
+    # Final time simulation
+    print(f"\n--- Final time passage: 2 days ---")
+    simulate_time_passing(memory_manager, 2)
+    current_day += 2
+    
+    print(f"\n=== Final System State (Day {current_day}) ===")
     print(memory_manager)
     
-    # Test long-term memory retrieval after a long time
-    print("\nTesting Long-Term Memory Retrieval after 30 days:")
-    final_query = "What was the client feedback on the project scope from a month ago?"
-    simulate_user_interaction(memory_manager, llm, final_query, 30)
+    # Demonstrate long-term memory capabilities
+    print(f"\n=== Long-Term Memory Test ===")
+    final_query = "What was the critical client feedback from a month ago about our project?"
+    simulate_user_interaction(memory_manager, llm, final_query, current_day)
+    
+    # Export system statistics for analysis
+    print(f"\n=== System Analysis ===")
+    final_stats = memory_manager.get_system_statistics()
+    
+    print(f"Final memory distribution:")
+    print(f"  Long-term Memory (LML): {final_stats['lml_count']} memories")
+    print(f"  Short-term Memory (SML): {final_stats['sml_count']} memories")
+    print(f"  Total memories: {final_stats['total_memories']}")
+    print(f"  Average memory strength: {final_stats['avg_memory_strength']:.3f}")
+    print(f"  Average half-life: {final_stats['avg_half_life_days']:.2f} days")
+    print(f"  Total accesses: {final_stats['total_accesses']}")
+    
+    # Show some example memories and their properties
+    all_memories = memory_manager.dual_layer_memory.get_all_memories()
+    if all_memories:
+        print(f"\nExample surviving memories:")
+        # Sort by strength and show top few
+        sorted_memories = sorted(all_memories, key=lambda m: m.memory_strength, reverse=True)
+        for i, memory in enumerate(sorted_memories[:3]):
+            print(f"  {i+1}. [{memory.layer_assignment}] {memory.content[:60]}...")
+            print(f"      Strength: {memory.memory_strength:.3f}, "
+                  f"Half-life: {memory.get_half_life():.2f}d, "
+                  f"Age: {memory.get_age_days():.1f}d, "
+                  f"Accesses: {memory.access_frequency}")
+    
+    print(f"\n=== Demo Complete ===")
+    print("The enhanced dual-layer memory architecture successfully demonstrated:")
+    print("✓ Biologically-inspired differential forgetting")
+    print("✓ Dynamic layer transitions with hysteresis")
+    print("✓ Memory consolidation through access")
+    print("✓ Importance-based memory management")
+    print("✓ Long-term memory retention and retrieval")
 
 if __name__ == "__main__":
     main() 

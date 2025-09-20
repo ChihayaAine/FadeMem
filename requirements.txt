@@ -1,10 +1,71 @@
-# Requirements for Agent Memory Project
-# Core dependencies (none required for basic functionality)
+# Enhanced Dual-Layer Memory Architecture Requirements
+# Complete dependencies for methodology implementation
 
-# Optional dependencies for LLM integration
-openai==1.12.0  # For real LLM API calls; install if using OpenAI
+# Core Python Dependencies
+python>=3.8
 
-# Optional dependencies for future enhancements
-numpy==1.26.1  # For potential embedding calculations in RAG
-scikit-learn==1.3.2  # For potential similarity metrics in RAG
-sentence-transformers==2.2.2  # For potential semantic similarity in RAG 
+# LLM and Embedding APIs
+openai>=1.12.0                    # OpenAI API for LLM calls and text-embedding-small-3
+anthropic>=0.21.0                 # Optional: Claude API support
+
+# LangGraph and LangChain ecosystem
+langgraph>=0.0.65                 # For RAG workflow orchestration
+langchain>=0.1.0                  # Core LangChain functionality
+langchain-openai>=0.1.0           # OpenAI integration for LangChain
+langchain-community>=0.0.10       # Community integrations
+
+# Vector Database and Storage
+chromadb>=0.4.18                  # Vector database for RAG storage
+faiss-cpu>=1.7.4                  # Alternative vector database (CPU version)
+# faiss-gpu>=1.7.4                # Use this instead for GPU acceleration
+
+# Scientific Computing and ML
+numpy>=1.24.0                     # Array operations and mathematical functions
+scipy>=1.11.0                     # Scientific computing utilities
+scikit-learn>=1.3.0               # Machine learning utilities and metrics
+
+# Data Processing
+pandas>=2.0.0                     # Data manipulation and analysis
+matplotlib>=3.7.0                 # Plotting and visualization
+seaborn>=0.12.0                   # Statistical data visualization
+
+# Text Processing and NLP
+sentence-transformers>=2.2.2      # Sentence embeddings for semantic similarity
+nltk>=3.8                         # Natural Language Toolkit
+spacy>=3.6.0                      # Advanced NLP processing
+transformers>=4.30.0              # Hugging Face transformers
+
+# Development and Testing
+pytest>=7.4.0                     # Testing framework
+pytest-cov>=4.1.0                 # Coverage testing
+black>=23.0.0                     # Code formatting
+flake8>=6.0.0                     # Code linting
+mypy>=1.5.0                       # Type checking
+
+# Utilities and Performance
+tqdm>=4.65.0                      # Progress bars
+python-dotenv>=1.0.0              # Environment variable management
+pydantic>=2.0.0                   # Data validation and settings
+requests>=2.31.0                  # HTTP requests
+aiohttp>=3.8.0                    # Async HTTP client
+
+# Logging and Monitoring
+loguru>=0.7.0                     # Advanced logging
+wandb>=0.15.0                     # Experiment tracking (optional)
+
+# Time and Date Utilities
+python-dateutil>=2.8.0            # Date parsing utilities
+
+# JSON and Configuration
+jsonschema>=4.17.0                # JSON schema validation
+pyyaml>=6.0                       # YAML configuration files
+
+# Optional: Jupyter and Notebook Support
+jupyter>=1.0.0                    # Jupyter notebook support
+ipython>=8.0.0                    # Enhanced Python shell
+notebook>=6.5.0                   # Jupyter notebook interface
+
+# Optional: Advanced Features
+redis>=4.5.0                      # Redis for caching (optional)
+sqlalchemy>=2.0.0                 # Database ORM (optional)
+psycopg2-binary>=2.9.0           # PostgreSQL adapter (optional) 
